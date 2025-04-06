@@ -1,0 +1,25 @@
+{
+  "name": "adaline-challenge",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "commit": "cz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sakethrambilla/adaline-challenge.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sakethrambilla/adaline-challenge/issues"
+  },
+  "homepage": "https://github.com/sakethrambilla/adaline-challenge#readme",
+  "description": "",
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  }
+}
