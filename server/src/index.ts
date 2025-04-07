@@ -14,7 +14,10 @@ const prisma = new PrismaClient();
 
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin:
+      process.env.NODE_ENV === "production"
+        ? "https://adaline-challenge.vercel.app/"
+        : "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
