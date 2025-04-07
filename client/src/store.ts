@@ -3,7 +3,10 @@ import { persist } from "zustand/middleware";
 import { io } from "socket.io-client";
 import { Folder, Item, Node } from "./types";
 
-const socket = io(import.meta.env.VITE_SERVER_URL || "http://localhost:3001");
+const socket = io(import.meta.env.VITE_SERVER_URL || "http://localhost:3001", {
+  withCredentials: true,
+  transports: ["websocket", "polling"],
+});
 
 interface StoreState {
   nodes: Node[];

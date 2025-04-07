@@ -16,13 +16,23 @@ const io = new Server(httpServer, {
   cors: {
     origin:
       process.env.NODE_ENV === "production"
-        ? "https://adaline-challenge.vercel.app/"
+        ? "https://adaline-challenge.vercel.app"
         : "http://localhost:5173",
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? "https://adaline-challenge.vercel.app"
+        : "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 async function orderedNodes() {
