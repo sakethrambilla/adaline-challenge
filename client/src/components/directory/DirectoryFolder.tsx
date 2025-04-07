@@ -111,7 +111,7 @@ function DirectoryFolder({ item }: DirectoryFolderProps) {
       </Collapsible>
 
       <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
-        <DialogContent>
+        <DialogContent className="pt-12">
           <AddFolderForm
             folder={item}
             onClose={() => setFolderDialogOpen(false)}
