@@ -1,15 +1,10 @@
-import { Button } from '@/components/ui/button'
+import DirectorySidebar from "./components/course/DirectorySidebar";
 
-function App() {
-
+export default function App() {
   return (
-    
-     
-          <div className="flex h-screen w-screens bg-blue-400 items-center justify-center">
-            <Button>Click me</Button>
-          </div>
-
-  )
+    <main className="flex min-h-screen w-full flex-col gap-4 bg-secondary p-4">
+      {/* Course Edit Sidebar */}
+      <DirectorySidebar />
+    </main>
+  );
 }
-
-export default App
