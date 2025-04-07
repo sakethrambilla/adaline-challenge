@@ -8,19 +8,32 @@ import { cn } from "@/lib/utils";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Folder, FolderOpen, Grip, MoreVertical } from "lucide-react";
+import {
+  Edit,
+  Folder,
+  FolderOpen,
+  Grip,
+  MoreVertical,
+  Trash,
+} from "lucide-react";
 import { memo, useEffect, useState } from "react";
 import DirectoryItem from "./DirectoryItem";
 import { useStore } from "@/store";
 import { Folder as FolderType, Item } from "@/types";
 import AddFolderForm from "./AddFolderForm";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface DirectoryFolderProps {
   item: FolderType;
 }
 
 function DirectoryFolder({ item }: DirectoryFolderProps) {
-  const { toggleFolder, reorderNode } = useStore();
+  const { toggleFolder, reorderNode, deleteFolder } = useStore();
 
   const [folderDialogOpen, setFolderDialogOpen] = useState<boolean>(false);
   const [isCollapseOpen, setIsCollapseOpen] = useState<boolean>(item.isOpen);
@@ -29,6 +42,10 @@ function DirectoryFolder({ item }: DirectoryFolderProps) {
   function handleReorder(item: any, order: number, folderId: string) {
     console.log("Reorder Item", item, order, folderId);
     reorderNode(item.id, order, "item");
+  }
+
+  function handleDeleteFolder() {
+    deleteFolder(item.id);
   }
 
   // Handle the end of a drag event
@@ -86,10 +103,25 @@ function DirectoryFolder({ item }: DirectoryFolderProps) {
             )}
             <p>{item.name}</p>
           </CollapsibleTrigger>
-          <MoreVertical
-            className="h-4 w-4"
-            onClick={() => setFolderDialogOpen(true)}
-          />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger disabled={folderDialogOpen}>
+              <MoreVertical className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="flex w-full gap-1">
+              <DropdownMenuItem
+                onClick={() => {
+                  setFolderDialogOpen(true);
+                }}
+              >
+                <Edit className="h-4 w-4" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={handleDeleteFolder}>
+                <Trash className="h-4 w-4  " />
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <CollapsibleContent
           className={cn(
