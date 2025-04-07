@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Folder {
+  id         String   @id @default(uuid())
+  name       String
+  isOpen     Boolean  @default(true)
+  orderIndex Int
+  items      Item[]
+}
+
+model Item {
+  id         String   @id @default(uuid())
+  name       String
+  icon    String
+  orderIndex Int
+  folder     Folder?  @relation(fields: [folderId], references: [id])
+  folderId   String?
+}

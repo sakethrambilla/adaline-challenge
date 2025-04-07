@@ -43,23 +43,12 @@ async function orderedNodes() {
       type: "item",
     })),
   ];
+  console.log("nodes", nodes);
 
   const sortedNodes = nodes.sort((a, b) => a.orderIndex - b.orderIndex);
+  console.log("sortedNodes", sortedNodes);
 
   return sortedNodes;
-}
-
-async function maxOrderIndex() {
-  const maxItemOrderIndex = await prisma.item.findFirst({
-    orderBy: { orderIndex: "desc" },
-  });
-  const maxFolderOrderIndex = await prisma.folder.findFirst({
-    orderBy: { orderIndex: "desc" },
-  });
-  return Math.max(
-    maxItemOrderIndex?.orderIndex || 0,
-    maxFolderOrderIndex?.orderIndex || 0
-  );
 }
 
 // Socket.IO logic
@@ -68,76 +57,35 @@ io.on("connection", (socket) => {
 
   socket.on("requestInitialState", async () => {
     const allNodes = await orderedNodes();
-    socket.emit("stateUpdate", { nodes: allNodes });
-    const folders = await prisma.folder.findMany({
-      orderBy: { orderIndex: "asc" },
-    });
-    socket.emit("folderUpdate", { folders: folders });
-  });
-
-  socket.on("createItem", async (itemData) => {
-    const maxItemOrderIndex = await maxOrderIndex();
-    await prisma.item.create({
-      data: {
-        id: uuidv4(),
-        name: itemData.name,
-        icon: itemData.icon,
-        orderIndex:
-          maxItemOrderIndex > itemData.orderIndex
-            ? itemData.orderIndex + 1
-            : maxItemOrderIndex,
-        folderId: itemData.folderId || null,
-      },
-    });
-    const allNodes = await orderedNodes();
-    // console.log("allNodes", allNodes);
-    io.emit("stateUpdate", { nodes: allNodes });
+    socket.emit("initialState", { nodes: allNodes });
   });
 
   socket.on("createFolder", async (folderData) => {
-    const maxFolderOrderIndex = await maxOrderIndex();
     await prisma.folder.create({
       data: {
         id: uuidv4(),
         name: folderData.name,
-        orderIndex:
-          maxFolderOrderIndex > folderData.orderIndex
-            ? folderData.orderIndex + 1
-            : maxFolderOrderIndex,
+        orderIndex: folderData.orderIndex,
         isOpen: true,
       },
     });
     const allNodes = await orderedNodes();
     io.emit("stateUpdate", { nodes: allNodes });
-    const folders = await prisma.folder.findMany({
-      orderBy: { orderIndex: "asc" },
-    });
-    io.emit("folderUpdate", { folders: folders });
   });
 
-  socket.on("updateItem", async (itemData) => {
-    const oldItem = await prisma.item.findUnique({
-      where: { id: itemData.id },
-    });
-    var index = itemData.orderIndex;
-    if (oldItem?.folderId) {
-      if (itemData.folderId === null) {
-        index = (await maxOrderIndex()) + 1;
-      } else {
-        index = itemData.orderIndex;
-      }
-    }
-
-    await prisma.item.update({
-      where: { id: itemData.id },
+  socket.on("createItem", async (itemData) => {
+    console.log(itemData);
+    await prisma.item.create({
       data: {
+        id: uuidv4(),
         name: itemData.name,
         icon: itemData.icon,
-        folderId: itemData.folderId || null,
-        orderIndex: index,
+        orderIndex: 0,
+        folderId: itemData.parentId || null,
       },
     });
     const allNodes = await orderedNodes();
+    console.log("allNodes", allNodes);
     io.emit("stateUpdate", { nodes: allNodes });
   });
 
@@ -154,36 +102,16 @@ io.on("connection", (socket) => {
     io.emit("stateUpdate", { nodes: allNodes });
   });
 
-  socket.on("toggleFolder", async (folderId) => {
-    // console.log("toggleFolder", folderId);
-    const folder = await prisma.folder.findUnique({
-      where: { id: folderId },
+  socket.on("updateItem", async (itemData) => {
+    await prisma.item.update({
+      where: { id: itemData.id },
+      data: {
+        name: itemData.name,
+        icon: itemData.icon,
+        folderId: itemData.parentId || null,
+        orderIndex: itemData.orderIndex,
+      },
     });
-    if (!folder) {
-      return;
-    }
-    await prisma.folder.update({
-      where: { id: folderId },
-      data: { isOpen: !folder.isOpen },
-    });
-    const allNodes = await orderedNodes();
-    io.emit("stateUpdate", { nodes: allNodes });
-  });
-
-  socket.on("reorderNode", async (reorderData) => {
-    const { itemId, orderIndex, type } = reorderData;
-    if (type === "item") {
-      await prisma.item.update({
-        where: { id: itemId },
-        data: { orderIndex },
-      });
-    } else if (type === "folder") {
-      await prisma.folder.update({
-        where: { id: itemId },
-        data: { orderIndex },
-      });
-    }
-
     const allNodes = await orderedNodes();
     io.emit("stateUpdate", { nodes: allNodes });
   });
@@ -204,6 +132,26 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
+});
+
+// REST API endpoints
+app.get("/api/nodes", async (req, res) => {
+  const allNodes = await orderedNodes();
+  res.json(allNodes);
+});
+
+app.get("/api/folders", async (req, res) => {
+  const folders = await prisma.folder.findMany({
+    orderBy: { orderIndex: "asc" },
+  });
+  res.json(folders);
+});
+
+app.get("/api/items", async (req, res) => {
+  const items = await prisma.item.findMany({
+    orderBy: { orderIndex: "asc" },
+  });
+  res.json(items);
 });
 
 httpServer.listen(3001, () => {
