@@ -51,7 +51,9 @@ export default function AddFolderForm({ folder, onClose }: AddFolderFormProps) {
       />
 
       <div className="flex justify-end gap-2">
-        <Button variant="outline">Cancel</Button>
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
         <Button onClick={handleSubmit} disabled={isLoading}>
           {isLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
